@@ -1,0 +1,236 @@
+<!DOCTYPE html>
+<html ng-app="myApp">
+<head>
+	
+	<meta charset="UTF-8">
+	<title>Angular Integration with servlet</title>
+	
+	<script src="https://ajax.googleapis.com/ajax/libs/angularjs/1.6.9/angular.min.js"></script>
+	<script src="https://ajax.googleapis.com/ajax/libs/jquery/3.4.1/jquery.min.js"></script>
+	
+	<!-- for chart.js  -->
+	<script
+		src="https://cdnjs.cloudflare.com/ajax/libs/Chart.js/2.7.2/Chart.bundle.js"> 
+	</script>
+	
+	<script type="text/javascript">
+		var app=angular.module('myApp', []);
+		app.controller('myCtrl',['$scope','$window','$http',function($scope,$window,$http){  // $scope , $window , $http
+			
+			var countryNAME=[]; 
+			var confirmedCase=[];
+			var activeCase=[];
+			var recoveredCase=[];
+			var deadCase=[];
+			
+			// For country wise details
+			$scope.dataArrayList=function(){
+				$scope.cn=$("#countryName").val();
+				console.log($scope.cn);
+				$http({
+					url:"https://covid19.mathdro.id/api/countries/"+$scope.cn,
+					method:"GET",
+					params:{}
+				}).then(function(response1){
+ 					console.log(response1.data);
+					console.log(response1.data.confirmed.value);
+					console.log(response1.data.deaths.value);
+					console.log(response1.data.recovered.value);
+					$scope.con1=response1.data.confirmed.value;
+					$scope.dea1=response1.data.deaths.value;
+					$scope.rec1=response1.data.recovered.value;	
+				},function(response1){
+					$window.alert("Connection Failed");
+				});
+			}
+			
+		  //For Grapgh Using Chart.js
+			$scope.dataArrayList1=function(){
+				$http({
+					url:"https://covid19.mathdro.id/api/confirmed",
+					method:"GET",
+					params:{}
+				}).then(function(response2){
+					console.log("For Graph");
+ 					console.log(response2.data);
+ 					
+// 					console.log(response1.data.confirmed.value);
+// 					console.log(response1.data.deaths.value);
+// 					console.log(response1.data.recovered.value);
+// 					$scope.con1=response1.data.confirmed.value;
+// 					$scope.dea1=response1.data.deaths.value;
+// 					$scope.rec1=response1.data.recovered.value;
+					
+					console.log(response2.data.length);
+					console.log(response2.data[0]);
+ 					console.log(response2.data[0]["countryRegion"]);
+ 					console.log(response2.data[1]["countryRegion"]);
+ 					var i;
+ 					for(i=0;i<12;i++){
+ 						countryNAME.push(response2.data[i]["countryRegion"]);
+ 						confirmedCase.push(response2.data[i]["confirmed"]);
+ 						recoveredCase.push(response2.data[i]["recovered"]);
+ 						deadCase.push(response2.data[i]["deaths"]);
+ 					}
+ 					console.log("Arrays ");
+ 					console.log(countryNAME);
+ 					console.log(confirmedCase);
+ 					console.log(recoveredCase);
+ 					console.log(deadCase);
+ 					
+				},function(response2){
+					$window.alert("Connection Failed");
+				});
+				
+				
+				//--------------------------------------------------------------
+				
+				var ctx = document.getElementById("myChartRam"); 
+					
+				Chart.defaults.global.defaultFontFamily='Lato';
+				Chart.defaults.global.defaultFontSize=18;
+				Chart.defaults.global.defaultFontColor='black';	
+					
+				var myChart = new Chart(ctx, { 
+					type: 'bar', 
+					data: { 
+						labels: countryNAME, 
+						datasets: [{ 
+							label: '# Corona Virus Confirmed Case', 
+							data: confirmedCase, 
+							backgroundColor :"green", 
+							borderColor: "green", 
+							borderWidth : 4,
+							fill: false
+ 						},
+						{
+							label: '# Corona Virus Recovered Case',
+							data: recoveredCase,
+							backgroundColor: 'blue',
+							borderColor: 'blue',
+							borderWidth : 4,
+							fill: false
+						},
+						{
+							label: '# Corona Virus Dead Case',
+							data: deadCase,
+							backgroundColor: 'red',
+							borderColor: 'red',
+							borderWidth : 4,
+							fill: false
+						}] 
+					}, 
+					
+					plugins: [{
+						beforeLayout: function (chart) {
+							chart.width = chart.canvas.width * 1.0;
+							chart.options.layout.padding.left = 0;
+						},
+					}],
+					
+					options: { 
+						responsive: true,
+						title:{
+							display:true,
+							text:"Corona Virus Live Update",
+							fontSize:25
+						},
+						tooltips:{
+							enabled:true,
+							backgroundColor:"black",
+							fontColor:"white"
+						},
+						scales: { 
+							xAxes: [{
+								display: true,
+								ticks: { 
+									beginAtZero:false 
+								},
+								scaleLabel: {
+									display: true,
+									labelString: 'COUNTRY_NAME'
+								}
+							}],
+							yAxes: [{
+								display: true,
+								ticks: { 
+									beginAtZero:false 
+								},
+								scaleLabel: {
+									display: true,
+									labelString: 'COUNTS'
+								}
+							}] 
+						} 
+					} 
+				});
+			//--------------------------------------------------------------
+				
+				
+			}
+		
+			// For All Over The World
+				$http({
+					url:"https://covid19.mathdro.id/api",
+					method:"GET",
+					params:{}
+				}).then(function(response){
+ 					console.log(response.data);
+					console.log(response.data.confirmed.value);
+					console.log(response.data.deaths.value);
+					console.log(response.data.recovered.value);
+					
+					$scope.con=response.data.confirmed.value;
+					$scope.dea=response.data.deaths.value;
+					$scope.rec=response.data.recovered.value;
+				},function(response){
+					$window.alert("Connection Failed");
+				});
+			
+		}]);
+		
+	</script>
+
+</head>
+<body ng-controller="myCtrl">
+		<h1 style="text-align: center;color: green;">Corona Virus Live Count Update</h1>
+		<h2 style="color: red;">Total Cases Of Corona Virus All Over The World</h2>
+		<table border="3" cellspaceing="3" text-align="center">
+			<tr>
+				<th>CONFIRMED</th>
+				<th>ACTIVE</th>
+				<th>RECOVERED</th>
+				<th>DECEASED</th>
+			</tr>
+			<tr style="text-align:center">
+				<td>{{con}}</td>
+				<td>{{con-rec}}</td>
+				<td>{{rec}}</td>
+				<td>{{dea}}</td>
+			</tr>
+		</table>
+		
+		<h2 style="color: blue;">Country Wise Corona Virus</h2>
+		<input style="width: 350px;height: 30px" type="text" id="countryName" placeholder="Enter country name"/>
+		<button ng-click="dataArrayList()">Get Data</button>
+
+			<table border="3" cellspaceing="3" text-align="center">
+			<tr>
+				<th>CONFIRMED</th>
+				<th>ACTIVE</th>
+				<th>RECOVERED</th>
+				<th>DECEASED</th>
+			</tr>
+			<tr style="text-align:center">
+				<td>{{con1}}</td>
+				<td>{{con1-rec1}}</td>
+				<td>{{rec1}}</td>
+				<td>{{dea1}}</td>
+			</tr>
+		</table>
+		
+		<button ng-click="dataArrayList1()">CheckOutGraph</button>
+		<canvas id="myChartRam" width="900" height="400"></canvas>
+		
+</body>
+</html>
